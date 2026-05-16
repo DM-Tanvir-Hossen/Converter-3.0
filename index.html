@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#0a1218" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="ট্রান্সক্রাইবার" />
+  <title>লেকচার ট্রান্সক্রাইবার</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+  <link rel="icon" type="image/png" href="icons/icon-192.png" />
+  <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0a1218;
+      --surface: #111c26;
+      --surface2: #182534;
+      --border: #1e3448;
+      --accent: #22d3ee;
+      --accent2: #818cf8;
+      --text: #e2eaf4;
+      --muted: #64748b;
+      --success: #34d399;
+      --error: #f87171;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Hind Siliguri', sans-serif;
+      min-height: 100vh;
+      min-height: -webkit-fill-available;
+    }
+
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image:
+        linear-gradient(rgba(34,211,238,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(34,211,238,0.03) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none; z-index: 0;
+    }
+
+    .app { position: relative; z-index: 1; max-width: 600px; margin: 0 auto; padding-bottom: 90px; }
+
+    /* Header */
+    .header {
+      background: rgba(10,18,24,0.96);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 16px 12px;
+      position: sticky; top: 0; z-index: 100;
+    }
+
+    .header-row { display: flex; align-items: center; gap: 12px; }
+    .logo {
+      width: 40px; height: 40px;
+      background: linear-gradient(135deg, #22d3ee, #818cf8);
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px; flex-shrink: 0;
+      box-shadow: 0 0 20px rgba(34,211,238,0.25);
+    }
+    .header-title {
+      font-size: 1.1rem; font-weight: 700;
+      background: linear-gradient(90deg, #22d3ee, #818cf8);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .header-sub { font-size: 0.7rem; color: var(--muted); margin-top: 1px; }
+
+    .tabs { display: flex; gap: 4px; margin-top: 10px; }
+    .tab {
+      flex: 1; padding: 7px 4px;
+      border-radius: 8px; border: 1px solid transparent;
+      background: transparent; color: var(--muted);
+      font-family: 'Hind Siliguri', sans-serif;
+      font-size: 0.75rem; font-weight: 600;
+      cursor: pointer; transition: all 0.2s; text-align: center;
+    }
+    .tab.active { background: rgba(34,211,238,0.1); border-color: rgba(34,211,238,0.3); color: var(--accent); }
+
+    .content { padding: 16px; }
+
+    /* Install banner */
+    .install-banner {
+      display: none; margin-bottom: 14px;
+      background: linear-gradient(135deg, rgba(34,211,238,0.08), rgba(129,140,248,0.08));
+      border: 1px solid rgba(34,211,238,0.2);
+      border-radius: 12px; padding: 12px 14px;
+      align-items: center; gap: 10px;
+    }
+    .install-banner-text { flex: 1; }
+    .install-title { font-size: 0.85rem; font-weight: 700; color: var(--accent); }
+    .install-sub { font-size: 0.72rem; color: var(--muted); margin-top: 1px; }
+    .install-btn {
+      padding: 7px 12px; border-radius: 8px;
+      border: 1px solid var(--accent); background: rgba(34,211,238,0.12);
+      color: var(--accent); font-size: 0.78rem; font-weight: 700;
+      cursor: pointer; white-space: nowrap;
+      font-family: 'Hind Siliguri', sans-serif;
+    }
+
+    /* Upload zone */
+    .upload-zone {
+      border: 2px dashed var(--border); border-radius: 18px;
+      padding: 32px 20px; text-align: center; cursor: pointer;
+      background: rgba(255,255,255,0.02); transition: all 0.2s;
+    }
+    .upload-zone:active { transform: scale(0.98); }
+    .upload-zone.dragover { border-color: var(--accent); background: rgba(34,211,238,0.05); }
+    .upload-zone.has-file { border-color: var(--success); border-style: solid; background: rgba(52,211,153,0.04); }
+
+    .upload-icon { font-size: 2.8rem; margin-bottom: 10px; display: block; }
+    .upload-title { font-size: 1rem; font-weight: 600; margin-bottom: 5px; }
+    .upload-hint { font-size: 0.78rem; color: var(--muted); line-height: 1.5; }
+    .file-badge {
+      display: none; margin-top: 10px;
+      background: rgba(52,211,153,0.12); border: 1px solid rgba(52,211,153,0.25);
+      border-radius: 8px; padding: 5px 10px;
+      font-size: 0.78rem; color: var(--success); font-weight: 600;
+      max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+
+    /* Audio */
+    .audio-wrap { display: none; margin-top: 12px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 12px; }
+    .audio-label { font-size: 0.7rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600; margin-bottom: 6px; }
+    audio { width: 100%; border-radius: 6px; height: 38px; }
+
+    /* Button */
+    .btn-primary {
+      width: 100%; margin-top: 14px; padding: 15px;
+      border-radius: 12px; border: none;
+      background: linear-gradient(135deg, #22d3ee, #818cf8);
+      color: white; font-family: 'Hind Siliguri', sans-serif;
+      font-size: 1rem; font-weight: 700; cursor: pointer;
+      transition: all 0.2s; display: flex; align-items: center;
+      justify-content: center; gap: 8px;
+      box-shadow: 0 4px 16px rgba(34,211,238,0.2);
+    }
+    .btn-primary:active { transform: scale(0.97); }
+    .btn-primary:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+
+    /* Status */
+    .status-card {
+      display: none; margin-top: 14px; border-radius: 12px;
+      padding: 16px; flex-direction: column; align-items: center;
+      gap: 10px; text-align: center;
+    }
+    .status-card.loading { background: rgba(34,211,238,0.06); border: 1px solid rgba(34,211,238,0.2); }
+    .status-card.error-card { background: rgba(248,113,113,0.06); border: 1px solid rgba(248,113,113,0.2); }
+    .status-card.success-card { background: rgba(52,211,153,0.06); border: 1px solid rgba(52,211,153,0.2); }
+    .status-card.show { display: flex; }
+
+    .spinner { width: 34px; height: 34px; border: 3px solid rgba(34,211,238,0.15); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .progress-bar { width: 100%; height: 3px; background: rgba(34,211,238,0.12); border-radius: 4px; overflow: hidden; }
+    .progress-fill { height: 100%; background: linear-gradient(90deg, #22d3ee, #818cf8); animation: prog 2s ease-in-out infinite; }
+    @keyframes prog { 0%{width:5%} 50%{width:80%} 100%{width:96%} }
+
+    .st-title { font-size: 0.95rem; font-weight: 700; }
+    .st-sub { font-size: 0.78rem; color: var(--muted); }
+
+    /* Download */
+    .dl-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
+    .btn-dl {
+      padding: 14px 10px; border-radius: 12px;
+      border: 1px solid var(--border); background: var(--surface);
+      color: var(--text); font-family: 'Hind Siliguri', sans-serif;
+      font-size: 0.82rem; font-weight: 600; cursor: pointer;
+      transition: all 0.2s; display: flex; flex-direction: column;
+      align-items: center; gap: 4px;
+    }
+    .btn-dl:active { transform: scale(0.96); }
+    .btn-dl.srt { border-color: rgba(129,140,248,0.35); background: rgba(129,140,248,0.07); color: #a5b4fc; }
+    .btn-dl.txt { border-color: rgba(34,211,238,0.35); background: rgba(34,211,238,0.07); color: var(--accent); }
+    .btn-dl-icon { font-size: 1.5rem; }
+    .btn-dl-hint { font-size: 0.68rem; color: var(--muted); }
+
+    /* Section */
+    .section-label {
+      font-size: 0.7rem; color: var(--muted); text-transform: uppercase;
+      letter-spacing: 0.1em; font-weight: 700; margin: 16px 0 10px;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .section-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+    /* Transcript */
+    .transcript-box { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+    .transcript-header {
+      padding: 10px 14px; background: var(--surface2); border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .transcript-header-title { font-size: 0.8rem; font-weight: 700; color: var(--accent2); }
+    .copy-btn {
+      padding: 4px 10px; border-radius: 6px; border: 1px solid var(--border);
+      background: transparent; color: var(--muted); font-size: 0.72rem;
+      cursor: pointer; font-family: 'Hind Siliguri', sans-serif; transition: all 0.2s;
+    }
+    .copy-btn.copied { color: var(--success); border-color: var(--success); }
+    .transcript-body {
+      padding: 14px; font-size: 0.88rem; line-height: 1.9; color: #cbd5e1;
+      max-height: 55vh; overflow-y: auto; white-space: pre-wrap; word-break: break-word;
+    }
+
+    /* Segments */
+    .segment-card { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 11px 13px; margin-bottom: 8px; }
+    .segment-time { font-size: 0.68rem; color: var(--accent); font-family: 'JetBrains Mono', monospace; font-weight: 600; margin-bottom: 4px; }
+    .segment-text { font-size: 0.9rem; line-height: 1.7; }
+
+    .srt-body {
+      padding: 14px; font-size: 0.76rem; line-height: 1.7; color: #94a3b8;
+      max-height: 60vh; overflow-y: auto; white-space: pre-wrap;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* Empty */
+    .empty-state { text-align: center; padding: 48px 20px; color: var(--muted); }
+    .empty-icon { font-size: 2.8rem; margin-bottom: 10px; }
+    .empty-text { font-size: 0.88rem; line-height: 1.6; }
+
+    /* Bottom bar */
+    .bottom-bar {
+      display: none; position: fixed; bottom: 0; left: 0; right: 0;
+      background: rgba(10,18,24,0.96); backdrop-filter: blur(20px);
+      border-top: 1px solid var(--border);
+      padding: 10px 16px; padding-bottom: calc(10px + env(safe-area-inset-bottom));
+      gap: 10px; z-index: 100;
+    }
+    .bottom-bar.show { display: flex; }
+    .bar-btn {
+      flex: 1; padding: 12px; border-radius: 10px;
+      border: 1px solid var(--border); background: var(--surface);
+      color: var(--muted); font-family: 'Hind Siliguri', sans-serif;
+      font-size: 0.8rem; cursor: pointer; display: flex;
+      align-items: center; justify-content: center; gap: 5px;
+    }
+    .bar-btn.primary { background: linear-gradient(135deg, #22d3ee, #818cf8); border-color: transparent; color: white; font-weight: 700; }
+    .bar-btn:active { transform: scale(0.96); }
+
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+<div class="app">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-row">
+      <div class="logo">🎙️</div>
+      <div>
+        <div class="header-title">লেকচার ট্রান্সক্রাইবার</div>
+        <div class="header-sub">Bangla + English · Subtitle Generator</div>
+      </div>
+    </div>
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('home')">📤 ট্রান্সক্রাইব</button>
+      <button class="tab" onclick="switchTab('subs')">🎬 Subtitle</button>
+      <button class="tab" onclick="switchTab('text')">📄 Full Text</button>
+    </div>
+  </div>
+
+  <!-- HOME TAB -->
+  <div id="tab-home" class="content">
+    <div class="install-banner" id="installBanner">
+      <div class="install-banner-text">
+        <div class="install-title">📲 App হিসেবে Install করুন</div>
+        <div class="install-sub">Home Screen এ রাখুন, Offline কাজ করবে</div>
+      </div>
+      <button class="install-btn" onclick="installPWA()">Install</button>
+    </div>
+
+    <div class="upload-zone" id="uploadZone"
+         onclick="document.getElementById('fileInput').click()"
+         ondragover="onDragOver(event)" ondrop="onDrop(event)" ondragleave="onDragLeave(event)">
+      <span class="upload-icon" id="uploadIcon">🎵</span>
+      <div class="upload-title" id="uploadTitle">Audio ফাইল বেছে নিন</div>
+      <div class="upload-hint" id="uploadHint">MP3, WAV, M4A, OGG সাপোর্ট করে<br>ক্লিক করুন অথবা drag করুন</div>
+      <div class="file-badge" id="fileBadge"></div>
+    </div>
+    <input type="file" id="fileInput" accept="audio/*,video/*" style="display:none" onchange="handleFile(event)" />
+
+    <div class="audio-wrap" id="audioWrap">
+      <div class="audio-label">🎧 Preview</div>
+      <audio id="audioPlayer" controls></audio>
+    </div>
+
+    <button class="btn-primary" id="transcribeBtn" onclick="startTranscription()" disabled>
+      🚀 ট্রান্সক্রাইব শুরু করুন
+    </button>
+
+    <div class="status-card loading" id="loadingCard">
+      <div class="spinner"></div>
+      <div>
+        <div class="st-title" style="color:#22d3ee">Transcribing...</div>
+        <div class="st-sub">Claude AI বাংলা + English চিনছে</div>
+      </div>
+      <div class="progress-bar"><div class="progress-fill"></div></div>
+    </div>
+
+    <div class="status-card success-card" id="successCard">
+      <div style="font-size:2rem">✅</div>
+      <div class="st-title" style="color:#34d399">সম্পন্ন! Subtitle তৈরি হয়েছে</div>
+    </div>
+
+    <div class="status-card error-card" id="errorCard">
+      <div style="font-size:2rem">❌</div>
+      <div class="st-title" style="color:#f87171" id="errorMsg">সমস্যা হয়েছে</div>
+    </div>
+
+    <div id="dlSection" class="hidden">
+      <div class="section-label">⬇️ ডাউনলোড</div>
+      <div class="dl-grid">
+        <button class="btn-dl srt" onclick="downloadSRT()">
+          <span class="btn-dl-icon">🎬</span>
+          SRT Subtitle
+          <span class="btn-dl-hint">Video player এ লাগান</span>
+        </button>
+        <button class="btn-dl txt" onclick="downloadTXT()">
+          <span class="btn-dl-icon">📄</span>
+          Full Transcript
+          <span class="btn-dl-hint">সম্পূর্ণ লেখা</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SUBTITLE TAB -->
+  <div id="tab-subs" class="content hidden">
+    <div class="empty-state" id="subEmpty">
+      <div class="empty-icon">🎬</div>
+      <div class="empty-text">প্রথমে audio ট্রান্সক্রাইব করুন<br>তারপর এখানে subtitle দেখবেন</div>
+    </div>
+    <div id="subContent" class="hidden">
+      <div class="section-label">🎬 Subtitle Segments</div>
+      <div id="segmentList"></div>
+      <button class="btn-primary" style="margin-top:8px" onclick="downloadSRT()">⬇️ SRT ডাউনলোড</button>
+    </div>
+  </div>
+
+  <!-- FULL TEXT TAB -->
+  <div id="tab-text" class="content hidden">
+    <div class="empty-state" id="textEmpty">
+      <div class="empty-icon">📄</div>
+      <div class="empty-text">ট্রান্সক্রিপশন শেষ হলে<br>এখানে পুরো লেখা দেখবেন</div>
+    </div>
+    <div id="textContent" class="hidden">
+      <div class="transcript-box">
+        <div class="transcript-header">
+          <div class="transcript-header-title">📝 Banglish Transcript</div>
+          <button class="copy-btn" id="copyBtn" onclick="copyText()">কপি</button>
+        </div>
+        <div class="transcript-body" id="transcriptBody"></div>
+      </div>
+      <button class="btn-primary" style="margin-top:10px" onclick="downloadTXT()">⬇️ TXT ডাউনলোড</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- Bottom bar -->
+<div class="bottom-bar" id="bottomBar">
+  <button class="bar-btn" onclick="downloadSRT()">🎬 SRT</button>
+  <button class="bar-btn primary" onclick="downloadTXT()">📄 TXT ডাউনলোড</button>
+</div>
+
+<script>
+  let audioFile = null, audioB64 = null;
+  let transcriptRaw = '', srtContent = '', fullText = '';
+  let segments = [];
+  let deferredPrompt = null;
+
+  // PWA install
+  window.addEventListener('beforeinstallprompt', e => {
+    e.preventDefault(); deferredPrompt = e;
+    document.getElementById('installBanner').style.display = 'flex';
+  });
+  window.addEventListener('appinstalled', () => {
+    document.getElementById('installBanner').style.display = 'none';
+  });
+  function installPWA() {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then(() => { deferredPrompt = null; document.getElementById('installBanner').style.display = 'none'; });
+  }
+
+  // Tabs
+  function switchTab(tab) {
+    ['home','subs','text'].forEach((t,i) => {
+      document.getElementById('tab-'+t).classList.toggle('hidden', t !== tab);
+      document.querySelectorAll('.tab')[i].classList.toggle('active', t === tab);
+    });
+  }
+
+  // File
+  function handleFile(e) { const f = e.target.files[0]; if (f) loadFile(f); }
+  function onDragOver(e) { e.preventDefault(); document.getElementById('uploadZone').classList.add('dragover'); }
+  function onDragLeave() { document.getElementById('uploadZone').classList.remove('dragover'); }
+  function onDrop(e) { e.preventDefault(); document.getElementById('uploadZone').classList.remove('dragover'); const f = e.dataTransfer.files[0]; if (f) loadFile(f); }
+
+  function loadFile(file) {
+    audioFile = file;
+    const zone = document.getElementById('uploadZone');
+    zone.classList.add('has-file');
+    document.getElementById('uploadIcon').textContent = '✅';
+    document.getElementById('uploadTitle').textContent = 'ফাইল লোড হয়েছে';
+    document.getElementById('uploadHint').textContent = '';
+    const badge = document.getElementById('fileBadge');
+    badge.style.display = 'inline-block';
+    badge.textContent = `📁 ${file.name} (${(file.size/1024/1024).toFixed(1)} MB)`;
+    document.getElementById('audioPlayer').src = URL.createObjectURL(file);
+    document.getElementById('audioWrap').style.display = 'block';
+    const reader = new FileReader();
+    reader.onload = () => { audioB64 = reader.result.split(',')[1]; document.getElementById('transcribeBtn').disabled = false; };
+    reader.readAsDataURL(file);
+  }
+
+  function show(id, show) { document.getElementById(id).classList.toggle('show', show); }
+
+  async function startTranscription() {
+    if (!audioB64) return;
+    document.getElementById('transcribeBtn').disabled = true;
+    show('loadingCard', true); show('successCard', false); show('errorCard', false);
+    document.getElementById('dlSection').classList.add('hidden');
+    document.getElementById('bottomBar').classList.remove('show');
+
+    try {
+      // Call our own proxy server (no CORS issue!)
+      const res = await fetch('/api/transcribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ audioB64, mimeType: audioFile.type || 'audio/mpeg' })
+      });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error.message || data.error);
+
+      transcriptRaw = data.content.map(c => c.type === 'text' ? c.text : '').join('\n');
+      processTranscript(transcriptRaw);
+
+      show('loadingCard', false); show('successCard', true);
+      document.getElementById('dlSection').classList.remove('hidden');
+      document.getElementById('bottomBar').classList.add('show');
+    } catch (err) {
+      show('loadingCard', false); show('errorCard', true);
+      document.getElementById('errorMsg').textContent = 'সমস্যা: ' + err.message;
+    }
+    document.getElementById('transcribeBtn').disabled = false;
+  }
+
+  function processTranscript(raw) {
+    segments = [];
+    const lines = raw.split('\n');
+    let fullLines = [], inFull = false;
+
+    for (const line of lines) {
+      if (line.includes('=== FULL TRANSCRIPT ===')) { inFull = true; continue; }
+      if (inFull) { fullLines.push(line); continue; }
+      const m = line.match(/\[(\d{1,2}:\d{2})\s*[-–]\s*(\d{1,2}:\d{2})\]\s*(.*)/);
+      if (m && m[3].trim()) segments.push({ start: m[1].trim(), end: m[2].trim(), text: m[3].trim() });
+    }
+
+    fullText = inFull ? fullLines.join('\n').trim() : raw;
+
+    srtContent = segments.map((s,i) => {
+      const toSRT = t => { const [mm,ss] = t.split(':').map(Number); return `00:0${mm}:${String(ss).padStart(2,'0')},000`; };
+      return `${i+1}\n${toSRT(s.start)} --> ${toSRT(s.end)}\n${s.text}\n`;
+    }).join('\n');
+
+    document.getElementById('segmentList').innerHTML = segments.map((s,i) =>
+      `<div class="segment-card">
+        <div class="segment-time">${String(i+1).padStart(2,'0')} · [${s.start} → ${s.end}]</div>
+        <div class="segment-text">${s.text}</div>
+      </div>`
+    ).join('');
+
+    document.getElementById('subEmpty').classList.add('hidden');
+    document.getElementById('subContent').classList.remove('hidden');
+    document.getElementById('transcriptBody').textContent = fullText || transcriptRaw;
+    document.getElementById('textEmpty').classList.add('hidden');
+    document.getElementById('textContent').classList.remove('hidden');
+  }
+
+  function downloadSRT() {
+    if (!srtContent) { alert('আগে ট্রান্সক্রাইব করুন'); return; }
+    dl(srtContent, 'lecture_subtitles.srt', 'text/plain');
+  }
+  function downloadTXT() {
+    const t = fullText || transcriptRaw;
+    if (!t) { alert('আগে ট্রান্সক্রাইব করুন'); return; }
+    dl(t, 'lecture_transcript.txt', 'text/plain;charset=utf-8');
+  }
+  function dl(content, name, type) {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([content], {type}));
+    a.download = name; a.click();
+  }
+  async function copyText() {
+    const t = fullText || transcriptRaw; if (!t) return;
+    await navigator.clipboard.writeText(t);
+    const btn = document.getElementById('copyBtn');
+    btn.textContent = '✅'; btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'কপি'; btn.classList.remove('copied'); }, 2000);
+  }
+
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
+</script>
+</body>
+</html>

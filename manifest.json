@@ -1,0 +1,36 @@
+{
+  "name": "লেকচার ট্রান্সক্রাইবার",
+  "short_name": "ট্রান্সক্রাইবার",
+  "description": "Bangla+English oscillator lecture transcriber with SRT subtitle export",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0a1218",
+  "theme_color": "#0f1923",
+  "lang": "bn",
+  "categories": ["education", "utilities"],
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "নতুন ট্রান্সক্রিপশন",
+      "short_name": "নতুন",
+      "description": "নতুন audio ট্রান্সক্রাইব করুন",
+      "url": "/",
+      "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}
